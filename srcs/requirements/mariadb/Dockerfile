@@ -1,34 +1,19 @@
-FROM alpine:3.18
+# Define la imagen base
+FROM debian:buster
 
+# Ejecuta comandos y crea una capa de imagen. Se utiliza para instalar paquetes en el contenedor.
 RUN apt-get update
-RUN apt-get install -y mariadb-server \
-    mariadb-client \
-    vim \
-    && rm -rf /var/lib/apt/lists/*
+RUN apt-get install -y mariadb-server
 
-#Allow to run the daemon of mysql
-# Purge and re-create /var/lib/mysql with appropriate ownership
-# ensure that /var/run/mysqld (used for socket and lock files) is writable regardless of the UID our mysqld instance ends up having at runtime
-RUN mkdir -p /var/run/mysqld \
-&& chown -R mysql:mysql /var/run/mysqld \
-&& chmod 777 /var/run/mysqld
+# Copia archivos y directorios al contenedor
+COPY ./conf/50-server.cnf /etc/mysql/mariadb.conf.d/
+COPY ./tools /var/www/
 
+# Indica la necesidad de abrir el puerto
 EXPOSE 3306
 
-#COPY		./conf/mysqld.conf ~/my.cnf
-#COPY		./conf/mysqld.conf /etc/mysql/my.cnf
-#COPY		./conf/mysqld.conf /etc/my.cnf
+# Inicia el servicio de MySQL, ejecuta un script SQL y luego elimina el archivo
+RUN service mysql start && mysql < /var/www/createdb.sql && rm -f /var/www/createdb.sql
 
-
-#Copy of the .sh and .sql in the /bin of the container to be able to run the program
-# Give the right to execute + launch the .sh
-COPY ./tools/mariadb.sh /usr/local/bin/
-COPY ./conf/wordpress.sql /usr/local/bin/
-RUN chmod +x /usr/local/bin/mariadb.sh
-RUN chmod +x /usr/local/bin/wordpress.sql
-
-ENTRYPOINT [ "/usr/local/bin/mariadb.sh" ]
-
-#Command to launch mariadb and enable the database to listen globally - also can be put on mysqldump.cnf file
-CMD ["mysqld", "--bind-address=0.0.0.0"]
-
+# Describe el comando con argumentos que se ejecutará cuando se inicie el contenedor
+CMD /usr/bin/mysqld_safe
