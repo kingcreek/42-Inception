@@ -139,14 +139,14 @@ volumes:
     driver_opts:
       type: none
       o: bind
-      device: ./data/db
+      device: /home/${USER}/data/db
   wp:
     name: wp
     driver: local
     driver_opts:
       type: none
       o: bind
-      device: ./data/wp
+      device: /home/${USER}/data/wp
 
 # El sistema de red 'project' creado por el usuario permite la comunicación entre nuestros contenedores,
 # ya que están en el mismo host del demonio de Docker.
