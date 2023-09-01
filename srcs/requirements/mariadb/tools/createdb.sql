@@ -1,9 +1,9 @@
 CREATE DATABASE wordpress;
-CREATE USER 'rbiodies'@'%' IDENTIFIED BY '123123';
+CREATE USER 'imurugar'@'%' IDENTIFIED BY '123123';
 -- Para GRANT ALL PRIVILEGES para rbiodies, que le otorga control total sobre la base de datos wordpress
 -- Estos privilegios están destinados para wordpress y se aplican a todas las tablas de esta base de datos,
 -- como se indica con .* de la siguiente manera
-GRANT ALL PRIVILEGES ON wordpress.* TO 'rbiodies'@'%';
+GRANT ALL PRIVILEGES ON wordpress.* TO 'imurugar'@'%';
 -- Guardar los cambios
 FLUSH PRIVILEGES;
 
