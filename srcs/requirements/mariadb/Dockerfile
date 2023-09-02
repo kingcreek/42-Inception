@@ -1,9 +1,19 @@
-FROM alpine:3.16.4
+# Define la imagen base
+FROM debian:buster
 
-RUN apk add --no-cache mariadb mariadb-client openrc
-# RUN openrc && touch /run/openrc/softlevel  
+# Ejecuta comandos y crea una capa de imagen. Se utiliza para instalar paquetes en el contenedor.
+RUN apt-get update
+RUN apt-get install -y mariadb-server
 
-COPY ./tools/script.sh /tmp/script.sh
-COPY ./conf/my.cnf /etc/my.cnf
+# Copia archivos y directorios al contenedor
+COPY ./conf/50-server.cnf /etc/mysql/mariadb.conf.d/
+COPY ./tools /var/www/
 
-ENTRYPOINT [ "sh","/tmp/script.sh" ]
+# Indica la necesidad de abrir el puerto
+EXPOSE 3306
+
+# Inicia el servicio de MySQL, ejecuta un script SQL y luego elimina el archivo
+RUN service mysql start && mysql < /var/www/createdb.sql && rm -f /var/www/createdb.sql
+
+# Describe el comando con argumentos que se ejecutará cuando se inicie el contenedor
+CMD /usr/bin/mysqld_safe
