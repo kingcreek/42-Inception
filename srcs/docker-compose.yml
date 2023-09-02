@@ -1,159 +1,153 @@
-# Archivo docker-compose que comienza con la versión.
-# Utilizamos "3.9" ya que es la versión más reciente en el momento de escribir esto
-version: '3.9'
-
-# Es importante entender que docker-compose trabaja con servicios.
-# 1 servicio = 1 contenedor.
-# Un servicio puede ser un sistema de gestión de contenido, un servidor, un servidor de bases de datos...
-# La sección donde se describirán los servicios comienza con 'services'
+version: '3.3'
 services:
-  mariadb:
-    # Nombre del contenedor
-    container_name: mariadb
-    # La palabra clave "build" permite especificar
-    # la ruta al archivo Dockerfile que se debe utilizar para crear la imagen,
-    # que permitirá ejecutar el servicio.
-    # Aquí, './requirements/mariadb' se corresponde con la ruta a la carpeta mariadb,
-    # que contiene el Dockerfile correspondiente
-    build: ./requirements/mariadb
-    # Este parámetro define la política de reinicio del contenedor
-    restart: always
-    # Este parámetro indica a Compose que deseamos agregar variables de entorno desde el archivo .env,
-    # que se encuentra en el contexto de compilación.
-    # En este caso, el contexto de compilación es nuestro directorio actual.
-    env_file: .env
-    # Aquí montamos un volumen nombrado llamado db en el directorio /var/lib/mysql dentro del contenedor.
-    # Esta es la ubicación estándar de datos en la mayoría de las distribuciones.
-    volumes:
-      - db:/var/lib/mysql
-    # Este parámetro indica que el servicio del contenedor se conectará a la red llamada project,
-    # que definiremos más abajo en el archivo.
-    networks:
-      - project
 
-  wordpress:
-    container_name: wordpress
-    build: ./requirements/wordpress
-    env_file: .env
-    # Montamos un volumen llamado wp en el punto de montaje /var/www/html/wordpress,
-    # que es creado por la imagen de WordPress.
-    # Usar un volumen con este nombre nos permite compartir el código de nuestra aplicación con otros contenedores.
-    volumes:
-      - wp:/var/www/html/wordpress
-    # Agregamos el contenedor de WordPress a la red llamada project.
-    networks:
-      - project
-    # Este parámetro garantiza que nuestros contenedores se inicien en el orden de dependencia.
-    # El contenedor de WordPress se inicia después del contenedor de mariadb,
-    # ya que nuestra aplicación WordPress depende de la base de datos y el usuario.
-    depends_on:
-      - mariadb
-
+  #########       Nginx         #############
   nginx:
+    build: 
+      context: ./requirements/nginx
+      dockerfile: Dockerfile
     container_name: nginx
-    build: ./requirements/nginx
-    hostname: localhost
-    volumes:
-      - wp:/var/www/html/wordpress
-    networks:
-      - project
+    image: nginx:1337
+    restart: on-failure
     depends_on:
       - wordpress
-    # Recuerda que en el servicio 'nginx' el puerto 443 está configurado.
-    # Si queremos acceder al servidor desde nuestra computadora (fuera del contenedor),
-    # necesitamos redirigir este puerto al puerto de nuestra computadora.
-    # Para esto, usamos la palabra clave 'ports' de la siguiente manera: [puerto de la computadora]:[puerto del contenedor]
-    # En nuestro caso, queremos usar el puerto 443 de la computadora y vincularlo al puerto 443 del contenedor,
-    # que es el puerto donde el servidor espera las solicitudes.
-    ports:
-      # - "8080:80" # http
-      - "443:443" # https
-
-  redis:
-    build: requirements/bonus/redis
-    container_name: redis
-    ports:
-      - "6379:6379"
-    networks:
-      - project
-    restart: always
-
-  ftp-server:
-    build: requirements/bonus/ftp-server
-    container_name: ftp-server
-    ports:
-      - "21:21"
-      - "21100-21110:21100-21110"
+    ports: 
+      - "443:443"
     volumes:
-      - wp:/var/www/html/wordpress
+      - type: volume
+        source: wp-volume
+        target: /var/www/html
     networks:
-     - project
-    restart: always
-    environment:
-      FTP_USR: ${FTP_USR}
-      FTP_PWD: ${FTP_PWD}
+      - net
+  
+    #########       Mariadb         #############
 
-  portainer:
-    # La imagen especifica el contenedor a partir del cual se ejecutará el contenedor
-    image: portainer/portainer-ce:latest
-    container_name: portainer
-    # Interfaz de usuario a través del puerto 9443 y exposición de un servidor de túneles TCP en el puerto 8000
-    ports:
-      - "8000:8000"
-      - "9443:9443"
+  mariadb:
+    build:
+      context: ./requirements/mariadb
+      dockerfile: Dockerfile
+    image: mariadb:1337
+    container_name: mariadb
+    restart: on-failure
+    env_file:
+      - .env
+    networks:
+      - net
     volumes:
-      - "/etc/localtime:/etc/localtime:ro"
-      # Este es el socket Unix que el demonio Docker escucha de manera predeterminada,
-      # y se puede usar para comunicarse con el demonio desde el contenedor
-      - "/var/run/docker.sock:/var/run/docker.sock:ro"
-      # Desactivar que los procesos en el contenedor obtengan nuevos privilegios
-      # Esto significa que comandos que elevan los privilegios, como su o sudo, ya no funcionarán
-    security_opt:
-      - no-new-privileges:true
-    restart: always
+      - type: volume
+        source: mariadb-volume
+        target: /var/lib/mysql
 
-  # adminer - se inicia solo cuando es necesario - omite nginx
-  adminer:
-    # Puerto predeterminado 8080
-    image: adminer:4
-    container_name: adminer
-    # Similar a 'always', excepto que cuando el contenedor se detiene (manualmente o de otra manera),
-    # no se reinicia incluso después de reiniciar el daemon de Docker
-    restart: unless-stopped
-    networks:
-      - project
+  #########       Wordpress         #############
+
+  wordpress:
+    build:
+      context: ./requirements/wordpress
+      dockerfile: Dockerfile
+    image: wordpress:1337
+    container_name: wordpress
     depends_on:
       - mariadb
+    restart: on-failure
     ports:
-      - "9000:8080"
+      - "9000:9000"
+    env_file:
+      - .env
+    volumes:
+      - type: volume
+        source: wp-volume
+        target: /var/www/html
+    networks:
+      - net
+      - net-redis-wordpress
+  ########        Adminer            ##########
+  adminer:
+    build:
+      context: ./requirements/bonus/adminer
+      dockerfile: Dockerfile
+    volumes:
+      - type: volume
+        source: wp-volume
+        target: /var/www/html
+    image: adminer:1337
+    container_name: adminer
+    depends_on:
+      - nginx
+    networks:
+      - net
 
-# Nuestro nivel superior de claves 'volumes' define los volúmenes 'db' y 'wp'.
-# Cuando Docker crea volúmenes, el contenido del volumen se guarda en el directorio del sistema de archivos del host,
-# en /var/lib/docker/volumes/, y este proceso está gestionado por Docker.
-# Luego, el contenido de cada volumen se monta desde este directorio en cualquier contenedor que use el volumen.
-# De esta manera, podemos compartir código y datos entre contenedores.
+###########         Redis           ##########
+  redis:
+    build:
+      context: ./requirements/bonus/redis
+      dockerfile: Dockerfile
+    image:  redis:1337
+    container_name: redis
+    ports: 
+      - "6379:6379"
+    restart: on-failure
+    networks:
+      - net-redis-wordpress
+
+  ##########          FTP           ##############
+  ftp:
+    build:
+      context: ./requirements/bonus/FTP
+      dockerfile: Dockerfile
+    image: ftp:1337
+    container_name: ftp
+    restart: on-failure
+    env_file:
+      - .env
+    ports:
+      - "20:20"
+      - "21:21"
+      - "30000-30009:30000-30009"
+    volumes:
+      - type: volume
+        source: wp-volume
+        target: /var/www/html
+    depends_on:
+      - wordpress
+    networks:
+      - net
+
+########          Portainer           ##########
+  myservice:
+    build:
+      context: ./requirements/bonus/myservice/portainer
+      dockerfile: Dockerfile
+    image: myservice:1337
+    container_name: portainer
+    ports:
+      - "9443:9443"
+      - "8000:8000"
+    restart: on-failure
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - portainer_data:/data
+
+
 volumes:
-  db:
-    name: db
+  mariadb-volume:
     driver: local
     driver_opts:
       type: none
       o: bind
-      device: /home/${USER}/data/db
-  wp:
-    name: wp
+      device: /home/${USER}/data/mariadb
+  wp-volume:
     driver: local
     driver_opts:
       type: none
       o: bind
-      device: /home/${USER}/data/wp
-
-# El sistema de red 'project' creado por el usuario permite la comunicación entre nuestros contenedores,
-# ya que están en el mismo host del demonio de Docker.
-# Esto permite organizar el tráfico y la comunicación dentro de la aplicación,
-# ya que abre todos los puertos entre contenedores en una red de puente, ocultando los puertos del mundo exterior.
-# De esta manera, nuestros contenedores mariadb, wordpress y nginx pueden interactuar entre sí,
-# y solo necesitaremos abrir el puerto 440 para el acceso externo a la aplicación.
+      device: /home/${USER}/data/wordpress
+  portainer_data:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: /home/${USER}/data/portainer
+    
 networks:
-  project:
-    driver: bridge
+  net:
+  net-redis-wordpress:

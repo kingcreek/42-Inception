@@ -1,11 +1,12 @@
-FROM debian:buster
+FROM 	alpine:3.16.4
 
-RUN apt-get update
-RUN apt-get install -y nginx openssl
+COPY 	./conf/nginx.conf /etc/nginx/nginx.conf
 
-EXPOSE 443
+COPY 	./tools/script.sh /
 
-COPY ./conf/default /etc/nginx/sites-enabled/default
-COPY ./tools/start.sh /var/www
+RUN 	sh ../script.sh
 
-CMD bash /var/www/start.sh
+
+WORKDIR /app
+EXPOSE 	443 
+CMD 	["nginx", "-g", "daemon off;"]
