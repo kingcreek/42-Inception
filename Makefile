@@ -10,11 +10,11 @@ stop:
 		sudo docker-compose -f $(DOCKER_COMPOSE_F) stop
 down:
 		sudo docker-compose -f $(DOCKER_COMPOSE_F) down
-		sudo rm -rf /home/aaggoujj/data/*
+		sudo rm -rf /home/${USER}/data/*
 up:
-		sudo mkdir -p /home/aaggoujj/data/mariadb
-		sudo mkdir -p /home/aaggoujj/data/wordpress
-		sudo mkdir -p /home/aaggoujj/data/portainer
+		sudo mkdir -p /home/${USER}/data/mariadb
+		sudo mkdir -p /home/${USER}/data/wordpress
+		sudo mkdir -p /home/${USER}/data/portainer
 		sudo docker-compose -f $(DOCKER_COMPOSE_F) up -d
 fclean: down
 clean: stop
