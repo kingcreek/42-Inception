@@ -70,7 +70,7 @@ services:
       - "443:443" # https
 
   redis:
-    build: requirements/bonus/redis
+    build: ./requirements/bonus/redis
     container_name: redis
     ports:
       - "6379:6379"
@@ -79,7 +79,7 @@ services:
     restart: always
 
   ftp-server:
-    build: requirements/bonus/ftp-server
+    build: ./requirements/bonus/ftp-server
     container_name: ftp-server
     ports:
       - "21:21"
@@ -94,38 +94,63 @@ services:
       FTP_PWD: ${FTP_PWD}
 
   portainer:
-    # La imagen especifica el contenedor a partir del cual se ejecutará el contenedor
-    image: portainer/portainer-ce:latest
     container_name: portainer
-    # Interfaz de usuario a través del puerto 9443 y exposición de un servidor de túneles TCP en el puerto 8000
-    ports:
-      - "8000:8000"
-      - "9443:9443"
+    build: ./requirements/bonus/portainer/
     volumes:
-      - "/etc/localtime:/etc/localtime:ro"
-      # Este es el socket Unix que el demonio Docker escucha de manera predeterminada,
-      # y se puede usar para comunicarse con el demonio desde el contenedor
       - "/var/run/docker.sock:/var/run/docker.sock:ro"
-      # Desactivar que los procesos en el contenedor obtengan nuevos privilegios
-      # Esto significa que comandos que elevan los privilegios, como su o sudo, ya no funcionarán
-    security_opt:
-      - no-new-privileges:true
+      - prt:/data
     restart: always
+    networks:
+      - project
+    ports:
+      - "9443:9443"
+  #portainer:
+  #  image: portainer/portainer-ce:latest
+  #  container_name: portainer
+  #  ports:
+  #    - "8000:8000"
+  #    - "9443:9443"
+  #  volumes:
+  #    - "/etc/localtime:/etc/localtime:ro"
+  #    - "/var/run/docker.sock:/var/run/docker.sock:ro"
+  #  security_opt:
+  #    - no-new-privileges:true
+  #  restart: always
 
   # adminer - se inicia solo cuando es necesario - omite nginx
   adminer:
-    # Puerto predeterminado 8080
-    image: adminer:4
     container_name: adminer
-    # Similar a 'always', excepto que cuando el contenedor se detiene (manualmente o de otra manera),
-    # no se reinicia incluso después de reiniciar el daemon de Docker
-    restart: unless-stopped
-    networks:
-      - project
+    build: ./requirements/bonus/adminer/
+    image: adminer:42
     depends_on:
       - mariadb
     ports:
       - "9000:8080"
+    networks:
+      - project
+    restart: unless-stopped
+
+  #adminer:
+  #  image: adminer:4
+  #  container_name: adminer
+  #  restart: unless-stopped
+  #  networks:
+  #    - project
+  #  depends_on:
+  #    - mariadb
+  #  ports:
+  #    - "9000:8080"
+
+  site:
+    container_name: site
+    build: ./requirements/bonus/site/
+    restart: always
+    networks:
+      - project
+    depends_on:
+      - nginx
+    ports:
+      - "1111:1111"
 
 # Nuestro nivel superior de claves 'volumes' define los volúmenes 'db' y 'wp'.
 # Cuando Docker crea volúmenes, el contenido del volumen se guarda en el directorio del sistema de archivos del host,
@@ -147,6 +172,13 @@ volumes:
       type: none
       o: bind
       device: /home/${USER}/data/wp
+  prt:
+    name: prt
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: /home/${USER}/data/prt
 
 # El sistema de red 'project' creado por el usuario permite la comunicación entre nuestros contenedores,
 # ya que están en el mismo host del demonio de Docker.
