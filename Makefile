@@ -7,7 +7,9 @@ all:	up
 up:
 		@mkdir -p /home/${USER}/data/db
 		@mkdir -p /home/${USER}/data/wp
-		@docker-compose -f srcs/docker-compose.yml up -d
+		@mkdir -p /home/${USER}/data/prt
+		@docker-compose -f srcs/docker-compose.yml up --build
+#		@docker-compose -f srcs/docker-compose.yml up -d
 
 # El comando docker-compose down detendrá sus contenedores, pero también eliminará los contenedores detenidos,
 # así como todas las redes creadas.
@@ -29,13 +31,16 @@ fclean:	down
 		docker system prune -a --force
 		sudo rm -Rf /home/${USER}/data/db
 		sudo rm -Rf /home/${USER}/data/wp
+		sudo rm -Rf /home/${USER}/data/prt
 		mkdir /home/${USER}/data/db
 		mkdir /home/${USER}/data/wp
+		mkdir /home/${USER}/data/prt
 
 # Cree o reconstruya los servicios
 re:
 		@mkdir -p ../data/wp
 		@mkdir -p ../data/db
+		@mkdir -p ../data/prt
 		@docker-compose -f srcs/docker-compose.yml build
 		docker-compose -f srcs/docker-compose.yml up
 
