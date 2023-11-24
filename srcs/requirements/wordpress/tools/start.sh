@@ -26,11 +26,32 @@ cd /var/www/html/wordpress;
 # Descarga y extrae los archivos principales de WordPress en la ruta especificada.
 
 # sitio web estático
-mkdir -p /var/www/html/wordpress/mysite;
-mv /var/www/index.html /var/www/html/wordpress/mysite/index.html;
+# mkdir -p /var/www/html/wordpress/mysite;
+# mv /var/www/index.html /var/www/html/wordpress/mysite/index.html;
 
 wp core download --allow-root;
-mv /var/www/wp-config.php /var/www/html/wordpress;
+
+#set permissons
+chmod -R 775 /var/www/html/wordpress;
+chown -R www-data /var/www/html/wordpress;
+chown -R www-data:www-data /var/www/html/wordpress;
+chmod -R 755 /var/www/html/wordpress;
+
+
+# Create config file wp-config.php with the appropriate database parameters (these are env variables in the .env file).
+# The --allow-root flag is needed because we are running as root user.
+wp config create --allow-root --dbname=$DB_DATABASE --dbhost=$DB_HOST --dbprefix=wp_ --dbuser=$USER --dbpass=$DB_USER_PASSWORD
+
+# habilitar la caché de redis
+wp config set WP_REDIS_HOST "$REDIS_HOST" --add --type=constant --raw --allow-root
+wp config set WP_REDIS_PORT 6379 --add --type=constant --raw --allow-root
+#wp config set WP_REDIS_PASSWORD "$REDIS_PWD" --add --type=constant --raw --allow-root
+wp config set WP_REDIS_TIMEOUT 1 --add --type=constant --raw --allow-root
+wp config set WP_REDIS_READ_TIMEOUT 1 --add --type=constant --raw --allow-root
+wp config set WP_REDIS_DATABASE 0 --add --type=constant --raw --allow-root
+
+#mv /var/www/wp-config.php /var/www/html/wordpress;
+
 echo "Wordpress: creando usuarios..."
 # Crea las tablas de WordPress en la base de datos 
 # usando la URL, el título y los datos proporcionados para el usuario administrador por defecto.
@@ -60,22 +81,22 @@ wp user create ${MYSQL_USER} ${WORDPRESS_USER_EMAIL} --user_pass=${MYSQL_PASSWOR
 wp theme install inspiro --activate --allow-root
 
 # habilitar la caché de redis
-sed -i "40i define( 'WP_REDIS_HOST', '$REDIS_HOST' );"      wp-config.php
-sed -i "41i define( 'WP_REDIS_PORT', 6379 );"               wp-config.php
-#sed -i "42i define( 'WP_REDIS_PASSWORD', '$REDIS_PWD' );"   wp-config.php
-sed -i "42i define( 'WP_REDIS_TIMEOUT', 1 );"               wp-config.php
-sed -i "43i define( 'WP_REDIS_READ_TIMEOUT', 1 );"          wp-config.php
-sed -i "44i define( 'WP_REDIS_DATABASE', 0 );\n"            wp-config.php
+# sed -i "40i define( 'WP_REDIS_HOST', '$REDIS_HOST' );"      wp-config.php
+# sed -i "41i define( 'WP_REDIS_PORT', 6379 );"               wp-config.php
+# #sed -i "42i define( 'WP_REDIS_PASSWORD', '$REDIS_PWD' );"   wp-config.php
+# sed -i "42i define( 'WP_REDIS_TIMEOUT', 1 );"               wp-config.php
+# sed -i "43i define( 'WP_REDIS_READ_TIMEOUT', 1 );"          wp-config.php
+# sed -i "44i define( 'WP_REDIS_DATABASE', 0 );\n"            wp-config.php
 
 wp plugin install redis-cache --activate --allow-root
 wp plugin update --all --allow-root
-
+wp redis enable --allow-root
 echo "Wordpress: ¡configurado!"
 else
 echo "Wordpress: ¡ya está configurado!"
 fi
 
-wp redis enable --allow-root
+
 
 echo "Wordpress iniciado en :9000"
 /usr/sbin/php-fpm7.3 -F

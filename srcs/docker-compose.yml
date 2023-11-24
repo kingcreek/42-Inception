@@ -43,11 +43,13 @@ services:
     # Agregamos el contenedor de WordPress a la red llamada project.
     networks:
       - project
+    restart: always
     # Este parámetro garantiza que nuestros contenedores se inicien en el orden de dependencia.
     # El contenedor de WordPress se inicia después del contenedor de mariadb,
     # ya que nuestra aplicación WordPress depende de la base de datos y el usuario.
     depends_on:
       - mariadb
+      - redis
 
   nginx:
     container_name: nginx
@@ -59,6 +61,7 @@ services:
       - project
     depends_on:
       - wordpress
+    restart: always
     # Recuerda que en el servicio 'nginx' el puerto 443 está configurado.
     # Si queremos acceder al servidor desde nuestra computadora (fuera del contenedor),
     # necesitamos redirigir este puerto al puerto de nuestra computadora.
@@ -102,6 +105,7 @@ services:
     restart: always
     networks:
       - project
+    env_file: .env
     ports:
       - "9443:9443"
   #portainer:
@@ -128,7 +132,7 @@ services:
       - "9000:8080"
     networks:
       - project
-    restart: unless-stopped
+    restart: always
 
   #adminer:
   #  image: adminer:4

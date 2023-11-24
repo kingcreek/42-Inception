@@ -5,7 +5,6 @@ RUN apt-get update
 
 COPY ./tools/script.sh /
 
-RUN apt-get install wget -y && apt-get install php php-mysql  -y
+RUN apt-get install wget -y && apt-get install php php-mysql php-pgsql  -y
 
-
-CMD ["./script.sh"]
+CMD ["/bin/bash", "script.sh"]

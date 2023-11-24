@@ -9,6 +9,6 @@ COPY ./conf/www.conf /etc/php/7.3/fpm/pool.d
 COPY ./tools /var/www/
 
 # static website
-COPY conf/index.html /var/www/index.html
+# COPY conf/index.html /var/www/index.html
 
-CMD bash /var/www/start.sh
+CMD ["/bin/bash", "/var/www/start.sh"]

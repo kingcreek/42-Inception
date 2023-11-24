@@ -2,3 +2,8 @@ https://github.com/rbiodies/Inception/tree/main
 
 
 ssh -p 22 imurugar@localhost
+
+
+portainer, poner usuario y contraseña por defecto para que no tenga que setearla al entrar la primera vez
+
+adminer, no se conecta a la base de datos
