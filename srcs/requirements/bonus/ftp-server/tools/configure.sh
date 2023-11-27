@@ -1,3 +1,5 @@
+#!bin/bash
+
 if [ ! -f "/etc/vsftpd.conf.bak" ]; then
 
 	mkdir -p /var/run/vsftpd/empty

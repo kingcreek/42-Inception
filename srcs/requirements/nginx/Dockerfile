@@ -8,4 +8,5 @@ EXPOSE 443
 COPY ./conf/default /etc/nginx/sites-enabled/default
 COPY ./tools/start.sh /var/www
 
-CMD ["/bin/bash", "/var/www/start.sh"]
+RUN chmod +x /var/www/start.sh
+CMD ["/var/www/start.sh"]

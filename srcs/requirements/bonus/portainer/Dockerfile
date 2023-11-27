@@ -14,12 +14,4 @@ COPY start.sh /start.sh
 
 RUN chmod +x /start.sh
 
-# CMD ["/portainer/portainer"]
-CMD ["/bin/bash", "/start.sh"]
-
-# Generar el hash de la contraseña usando htpasswd y la variable de entorno
-# RUN ADMIN_PASSWORD_HASH=$(htpasswd -nbB admin $PORTAINER_PWD | cut -d ":" -f 2) \
-#     && echo "export ADMIN_PASSWORD_HASH=$ADMIN_PASSWORD_HASH" >> /root/.bashrc
-
-# CMD ["/portainer/portainer"]
-# CMD ["/portainer/portainer", "--admin-password=$ADMIN_PASSWORD_HASH"]
+CMD ["/start.sh"]
