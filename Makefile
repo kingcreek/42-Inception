@@ -8,7 +8,8 @@ up:
 		@mkdir -p /home/${USER}/data/db
 		@mkdir -p /home/${USER}/data/wp
 		@mkdir -p /home/${USER}/data/prt
-		@docker-compose -f srcs/docker-compose.yml up --detach --build
+#		@docker-compose -f srcs/docker-compose.yml up --detach --build
+		@docker-compose -f srcs/docker-compose.yml up --build
 #		@docker-compose -f srcs/docker-compose.yml up -d
 
 # El comando docker-compose down detendrá sus contenedores, pero también eliminará los contenedores detenidos,

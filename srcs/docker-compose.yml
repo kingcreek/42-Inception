@@ -125,11 +125,13 @@ services:
   adminer:
     container_name: adminer
     build: ./requirements/bonus/adminer/
-    image: adminer:42
+    image: adminer
     depends_on:
       - mariadb
-    ports:
-      - "9000:8080"
+    volumes:
+      - adminer_data:/var/www/adminer:ro
+    # ports:
+    #   - "9000:8080"
     networks:
       - project
     restart: always
@@ -153,8 +155,6 @@ services:
       - project
     depends_on:
       - nginx
-    ports:
-      - "1111:1111"
 
 # Nuestro nivel superior de claves 'volumes' define los volúmenes 'db' y 'wp'.
 # Cuando Docker crea volúmenes, el contenido del volumen se guarda en el directorio del sistema de archivos del host,
@@ -183,6 +183,12 @@ volumes:
       type: none
       o: bind
       device: /home/${USER}/data/prt
+  adminer_data:
+        driver: local
+        driver_opts:
+            type: none
+            o: bind
+            device: /home/${USER}/data/adminer
 
 # El sistema de red 'project' creado por el usuario permite la comunicación entre nuestros contenedores,
 # ya que están en el mismo host del demonio de Docker.

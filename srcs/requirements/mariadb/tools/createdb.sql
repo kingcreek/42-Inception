@@ -9,4 +9,4 @@ FLUSH PRIVILEGES;
 
 -- Para cambiar la autenticación o las características de recursos de la base de datos de un usuario de base de datos
 -- Para permitir que el servidor proxy se conecte como cliente sin autenticación
-ALTER USER 'root'@'localhost' IDENTIFIED BY 'root123123';
+ALTER USER 'root'@'localhost' IDENTIFIED BY '123123';

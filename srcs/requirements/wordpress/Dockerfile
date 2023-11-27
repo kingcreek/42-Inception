@@ -1,15 +1,12 @@
 FROM debian:buster
 
-RUN apt update
-RUN apt install -y php7.3 php-mysqli php-fpm curl sendmail
+RUN apt-get update && apt-get install -y php7.3-fpm php7.3-mysql mariadb-client curl
+
 
 EXPOSE 9000
 
 COPY ./conf/www.conf /etc/php/7.3/fpm/pool.d
 COPY ./tools /var/www/
-
-# static website
-# COPY conf/index.html /var/www/index.html
 
 RUN chmod +x /var/www/start.sh
 CMD ["/var/www/start.sh"]
