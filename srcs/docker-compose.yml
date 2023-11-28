@@ -25,7 +25,7 @@ services:
     # Aquí montamos un volumen nombrado llamado db en el directorio /var/lib/mysql dentro del contenedor.
     # Esta es la ubicación estándar de datos en la mayoría de las distribuciones.
     volumes:
-      - db:/var/lib/mysql
+      - database:/var/lib/mysql
     # Este parámetro indica que el servicio del contenedor se conectará a la red llamada project,
     # que definiremos más abajo en el archivo.
     networks:
@@ -35,16 +35,12 @@ services:
     container_name: wordpress
     build: ./requirements/wordpress
     env_file: .env
-    # Montamos un volumen llamado wp en el punto de montaje /var/www/html/wordpress,
-    # que es creado por la imagen de WordPress.
-    # Usar un volumen con este nombre nos permite compartir el código de nuestra aplicación con otros contenedores.
     volumes:
-      - wp:/var/www/html/wordpress
-    # Agregamos el contenedor de WordPress a la red llamada project.
+      - wordpress:/var/www/html/wordpress
     networks:
       - project
     restart: always
-    # Este parámetro garantiza que nuestros contenedores se inicien en el orden de dependencia.
+    # Este parámetro "garantiza" que nuestros contenedores se inicien en el orden de dependencia.
     # El contenedor de WordPress se inicia después del contenedor de mariadb,
     # ya que nuestra aplicación WordPress depende de la base de datos y el usuario.
     depends_on:
@@ -56,18 +52,12 @@ services:
     build: ./requirements/nginx
     hostname: localhost
     volumes:
-      - wp:/var/www/html/wordpress
+      - wordpress:/var/www/html/wordpress
     networks:
       - project
     depends_on:
       - wordpress
     restart: always
-    # Recuerda que en el servicio 'nginx' el puerto 443 está configurado.
-    # Si queremos acceder al servidor desde nuestra computadora (fuera del contenedor),
-    # necesitamos redirigir este puerto al puerto de nuestra computadora.
-    # Para esto, usamos la palabra clave 'ports' de la siguiente manera: [puerto de la computadora]:[puerto del contenedor]
-    # En nuestro caso, queremos usar el puerto 443 de la computadora y vincularlo al puerto 443 del contenedor,
-    # que es el puerto donde el servidor espera las solicitudes.
     ports:
       # - "8080:80" # http
       - "443:443" # https
@@ -88,7 +78,7 @@ services:
       - "21:21"
       - "21100-21110:21100-21110"
     volumes:
-      - wp:/var/www/html/wordpress
+      - wordpress:/var/www/html/wordpress
     networks:
      - project
     restart: always
@@ -101,27 +91,14 @@ services:
     build: ./requirements/bonus/portainer/
     volumes:
       - "/var/run/docker.sock:/var/run/docker.sock:ro"
-      - prt:/data
+      - portainer:/data
     restart: always
     networks:
       - project
     env_file: .env
     ports:
       - "9443:9443"
-  #portainer:
-  #  image: portainer/portainer-ce:latest
-  #  container_name: portainer
-  #  ports:
-  #    - "8000:8000"
-  #    - "9443:9443"
-  #  volumes:
-  #    - "/etc/localtime:/etc/localtime:ro"
-  #    - "/var/run/docker.sock:/var/run/docker.sock:ro"
-  #  security_opt:
-  #    - no-new-privileges:true
-  #  restart: always
 
-  # adminer - se inicia solo cuando es necesario - omite nginx
   adminer:
     container_name: adminer
     build: ./requirements/bonus/adminer/
@@ -129,23 +106,12 @@ services:
     depends_on:
       - mariadb
     volumes:
-      - adminer_data:/var/www/adminer:ro
-    # ports:
-    #   - "9000:8080"
+      - adminer:/var/www/adminer:ro
+    ports:
+      - "9000:8080"
     networks:
       - project
     restart: always
-
-  #adminer:
-  #  image: adminer:4
-  #  container_name: adminer
-  #  restart: unless-stopped
-  #  networks:
-  #    - project
-  #  depends_on:
-  #    - mariadb
-  #  ports:
-  #    - "9000:8080"
 
   site:
     container_name: site
@@ -156,39 +122,35 @@ services:
     depends_on:
       - nginx
 
-# Nuestro nivel superior de claves 'volumes' define los volúmenes 'db' y 'wp'.
-# Cuando Docker crea volúmenes, el contenido del volumen se guarda en el directorio del sistema de archivos del host,
-# en /var/lib/docker/volumes/, y este proceso está gestionado por Docker.
-# Luego, el contenido de cada volumen se monta desde este directorio en cualquier contenedor que use el volumen.
-# De esta manera, podemos compartir código y datos entre contenedores.
 volumes:
-  db:
-    name: db
+  database:
+    name: database
     driver: local
     driver_opts:
       type: none
       o: bind
-      device: /home/${USER}/data/db
-  wp:
-    name: wp
+      device: /home/${USER}/data/database
+  wordpress:
+    name: wordpress
     driver: local
     driver_opts:
       type: none
       o: bind
-      device: /home/${USER}/data/wp
-  prt:
-    name: prt
+      device: /home/${USER}/data/wordpress
+  portainer:
+    name: portainer
     driver: local
     driver_opts:
       type: none
       o: bind
-      device: /home/${USER}/data/prt
-  adminer_data:
-        driver: local
-        driver_opts:
-            type: none
-            o: bind
-            device: /home/${USER}/data/adminer
+      device: /home/${USER}/data/portainer
+  adminer:
+    name: adminer
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: /home/${USER}/data/adminer
 
 # El sistema de red 'project' creado por el usuario permite la comunicación entre nuestros contenedores,
 # ya que están en el mismo host del demonio de Docker.

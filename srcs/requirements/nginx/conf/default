@@ -22,8 +22,8 @@ server {
     # En este bloque de ubicación, usamos la directiva "try_files" para verificar archivos correspondientes a solicitudes URI individuales.
     # En lugar de devolver el estado predeterminado 404 Not Found, redirigimos el control al archivo index.php de WordPress con los argumentos de la solicitud.
     location / {
-    #    try_files $uri $uri/ =404;
 		try_files $uri $uri/ /index.php$is_args$args;
+        #try_files $uri $uri/ =404;
     }
 
     # Este bloque de ubicación manejará solicitudes PHP y las proxyará al contenedor de WordPress.
@@ -33,15 +33,25 @@ server {
     # estas solicitudes se manejarán con php-fpm, que estará en la imagen php:fpm.
     # Además, este bloque de ubicación contiene directivas, variables y opciones FastCGI para proxyar las solicitudes a la aplicación WordPress en el contenedor wordpress,
     # establecer el índice preferido para el URI capturado de la solicitud, y analizar los URIs de las solicitudes.
+
+	location /adminer {
+    	proxy_pass http://adminer:8080;
+    	proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection 'upgrade';
+        proxy_set_header Host $host;
+        proxy_cache_bypass $http_upgrade;
+	}
+
     location ~ \.php$ {
-                try_files $uri = 404;
-                fastcgi_split_path_info ^(.+\.php)(/.+)$;
-                fastcgi_pass wordpress:9000;
-                fastcgi_index index.php;
-                include fastcgi_params;
-                fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
-                fastcgi_param PATH_INFO $fastcgi_path_info;
-        }
+		try_files $uri = 404;
+        fastcgi_split_path_info ^(.+\.php)(/.+)$;
+        fastcgi_pass wordpress:9000;
+        fastcgi_index index.php;
+        include fastcgi_params;
+        fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
+        fastcgi_param PATH_INFO $fastcgi_path_info;
+    }
 
 	location /static {
         proxy_pass http://site:1111;
@@ -51,16 +61,5 @@ server {
         proxy_set_header Host $host;
         proxy_cache_bypass $http_upgrade;
     }
-
-	location /adminer {
-        root /var/www;
-        index index.php;
-
-        location ~ \.php$ {
-            fastcgi_pass adminer:8080;
-            fastcgi_index index.php;
-            fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
-            include fastcgi_params;
-        }
-    }
+	
 }

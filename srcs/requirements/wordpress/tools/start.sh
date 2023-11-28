@@ -32,10 +32,10 @@ cd /var/www/html/wordpress;
 wp core download --allow-root;
 
 #set permissons
-# chmod -R 775 /var/www/html/wordpress;
-# chown -R www-data /var/www/html/wordpress;
-# chown -R www-data:www-data /var/www/html/wordpress;
-# chmod -R 755 /var/www/html/wordpress;
+chmod -R 775 /var/www/html/wordpress;
+chown -R www-data /var/www/html/wordpress;
+chown -R www-data:www-data /var/www/html/wordpress;
+chmod -R 755 /var/www/html/wordpress;
 
 
 wp config create --allow-root --dbname=$DB_DATABASE --dbhost=$DB_HOST --dbprefix=wp_ --dbuser=$USER --dbpass=$DB_USER_PASSWORD
@@ -46,7 +46,7 @@ wp core install --allow-root --url=${DOMAIN_NAME} --title=${WORDPRESS_NAME} --ad
 
 wp user create ${WORDPRESS_LOGIN} ${WORDPRESS_USER_EMAIL} --user_pass=${WORDPRESS_PASSWORD} --role=author --allow-root;
 
-wp theme install twentyseventeen --activate --allow-root
+wp theme install inspiro --activate --allow-root
 
 wp plugin install redis-cache --activate --allow-root
 wp config set WP_REDIS_HOST "$REDIS_HOST" --add --allow-root
