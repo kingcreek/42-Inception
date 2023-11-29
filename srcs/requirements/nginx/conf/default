@@ -34,6 +34,13 @@ server {
     # Además, este bloque de ubicación contiene directivas, variables y opciones FastCGI para proxyar las solicitudes a la aplicación WordPress en el contenedor wordpress,
     # establecer el índice preferido para el URI capturado de la solicitud, y analizar los URIs de las solicitudes.
 
+	location /portainer/ {
+		rewrite /portainer/(.*) /$1 break;
+		proxy_http_version 1.1;
+		proxy_set_header Connection "";
+		proxy_pass https://portainer:9443;
+	}
+
 	location /adminer {
     	proxy_pass http://adminer:8080;
     	proxy_http_version 1.1;

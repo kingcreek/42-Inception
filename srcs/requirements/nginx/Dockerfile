@@ -1,7 +1,7 @@
 FROM debian:buster
 
 RUN apt-get update
-RUN apt-get install -y nginx openssl -y
+RUN apt-get install -y nginx openssl expect
 
 EXPOSE 443
 

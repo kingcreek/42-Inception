@@ -5,7 +5,7 @@ all:	up
 # Cree los contenedores utilizando el comando docker-compose up y la bandera -d,
 # que ejecutará los contenedores mariadb, wordpress y nginx en segundo plano.
 up:
-		@mkdir -p /home/${USER}/data/database
+		@mkdir -p /home/${USER}/data/mariadb
 		@mkdir -p /home/${USER}/data/wordpress
 		@mkdir -p /home/${USER}/data/portainer
 		@mkdir -p /home/${USER}/data/adminer
@@ -31,11 +31,11 @@ fclean:	down
 		@docker rmi -f $$(docker images -qa);\
 		docker volume rm $$(docker volume ls -q);\
 		docker system prune -a --force
-		sudo rm -Rf /home/${USER}/data/database
+		sudo rm -Rf /home/${USER}/data/mariadb
 		sudo rm -Rf /home/${USER}/data/wordpress
 		sudo rm -Rf /home/${USER}/data/portainer
 		sudo rm -Rf /home/${USER}/data/adminer
-		mkdir /home/${USER}/data/database
+		mkdir /home/${USER}/data/mariadb
 		mkdir /home/${USER}/data/wordpress
 		mkdir /home/${USER}/data/portainer
 		mkdir /home/${USER}/data/adminer
@@ -43,7 +43,7 @@ fclean:	down
 # Cree o reconstruya los servicios
 re:
 		@mkdir -p ../data/wordpress
-		@mkdir -p ../data/database
+		@mkdir -p ../data/mariadb
 		@mkdir -p ../data/portainer
 		@mkdir -p ../data/adminer
 		@docker-compose -f srcs/docker-compose.yml build

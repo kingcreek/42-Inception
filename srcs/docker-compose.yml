@@ -22,10 +22,10 @@ services:
     # que se encuentra en el contexto de compilación.
     # En este caso, el contexto de compilación es nuestro directorio actual.
     env_file: .env
-    # Aquí montamos un volumen nombrado llamado db en el directorio /var/lib/mysql dentro del contenedor.
+    # Aquí montamos un volumen nombrado llamado mariadb en el directorio /var/lib/mysql dentro del contenedor.
     # Esta es la ubicación estándar de datos en la mayoría de las distribuciones.
     volumes:
-      - database:/var/lib/mysql
+      - mariadb:/var/lib/mysql
     # Este parámetro indica que el servicio del contenedor se conectará a la red llamada project,
     # que definiremos más abajo en el archivo.
     networks:
@@ -65,8 +65,8 @@ services:
   redis:
     build: ./requirements/bonus/redis
     container_name: redis
-    ports:
-      - "6379:6379"
+    # ports:
+    #   - "6379:6379"
     networks:
       - project
     restart: always
@@ -96,8 +96,8 @@ services:
     networks:
       - project
     env_file: .env
-    ports:
-      - "9443:9443"
+    # ports:
+    #   - "9443:9443"
 
   adminer:
     container_name: adminer
@@ -107,8 +107,8 @@ services:
       - mariadb
     volumes:
       - adminer:/var/www/adminer:ro
-    ports:
-      - "9000:8080"
+    # ports:
+    #   - "9000:8080"
     networks:
       - project
     restart: always
@@ -123,13 +123,13 @@ services:
       - nginx
 
 volumes:
-  database:
-    name: database
+  mariadb:
+    name: mariadb
     driver: local
     driver_opts:
       type: none
       o: bind
-      device: /home/${USER}/data/database
+      device: /home/${USER}/data/mariadb
   wordpress:
     name: wordpress
     driver: local

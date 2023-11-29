@@ -1,7 +1,8 @@
-FROM  alpine:3.12.0
+FROM debian:buster
 
-RUN apk update; \
-    apk add --update nodejs npm
+RUN apt-get update && \
+    apt-get install -y nodejs npm && \
+    rm -rf /var/lib/apt/lists/*
 
 COPY ./conf /
 
