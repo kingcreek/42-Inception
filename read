@@ -1,9 +1,22 @@
-https://github.com/rbiodies/Inception/tree/main
 
+Entiendo. Si necesitas acceder a tu servidor Nginx con una URL personalizada y no puedes editar el archivo /etc/hosts en tu sistema anfitrión, puedes considerar algunas alternativas:
 
-ssh -p 22 imurugar@localhost
+1. Configuración Local de DNS (dnsmasq):
+Puedes instalar un servidor DNS local en tu máquina Mac, como dnsmasq, para configurar resoluciones de nombres de dominio personalizadas. Aquí hay pasos generales:
 
+Instala dnsmasq en tu Mac usando un administrador de paquetes como Homebrew:
 
-portainer, poner usuario y contraseña por defecto para que no tenga que setearla al entrar la primera vez
+bash
+Copy code
+brew install dnsmasq
+Configura dnsmasq para resolver tu dominio personalizado. Crea un archivo de configuración para dnsmasq:
 
-adminer, no se conecta a la base de datos
+bash
+Copy code
+echo "address=/<tudominio.com>/<dirección_ip_de_tu_maquina_virtual>" > /usr/local/etc/dnsmasq.conf
+Reinicia dnsmasq:
+
+bash
+Copy code
+brew services restart dnsmasq
+Ahora, deberías poder acceder a http://tudominio.com en tu navegador.
