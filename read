@@ -12,3 +12,6 @@ Reiniciar dnsmasq:
 
 brew services restart dnsmasq
 Ahora, se puede acceder a http://tudominio.com en tu navegador.
+
+
+Puertos requeridos, 443, 22, 21
