@@ -1,37 +1,21 @@
 #!/bin/bash
 
-# Reemplaza todas las instancias de una cadena en un archivo, sobrescribiendo el archivo:
-#sed -i "s/listen = \/run\/php\/php7.3-fpm.sock/listen = 9000/" "/etc/php/7.3/fpm/pool.d/www.conf";
-# -R cambia recursivamente los permisos de los directorios y su contenido
-#chmod -R 775 /var/www/html/wordpress;
-# El siguiente ejemplo cambiará el propietario de todos los archivos y 
-# subdirectorios en el directorio /var/www/html/wordpress a un nuevo propietario y al grupo www-data:
-#chown -R www-data /var/www/html/wordpress;
+
 mkdir -p /run/php/;
 touch /run/php/php7.3-fpm.pid;
 
-# php -S 0.0.0.0:9000 -t /var/www/html/wordpress
-
 if [ ! -f /var/www/html/wordpress/wp-config.php ]; then
 echo "Wordpress: configurando..."
-# Después de verificar los requisitos, descargue el archivo wp-cli.phar 
-# usando wget o curl:
+
 curl -O https://raw.githubusercontent.com/wp-cli/builds/gh-pages/phar/wp-cli.phar;
-# "+x" significa dar permisos de ejecución (x) al archivo para todos los usuarios.
+
 chmod +x wp-cli.phar;
-# Para usar WP-CLI desde la línea de comandos escribiendo wp, 
-# haga el archivo ejecutable y muévalo a algún lugar en el PATH. Por ejemplo:
+
 mv wp-cli.phar /usr/local/bin/wp;
 cd /var/www/html/wordpress;
-# Descarga y extrae los archivos principales de WordPress en la ruta especificada.
-
-# sitio web estático
-# mkdir -p /var/www/html/wordpress/mysite;
-# mv /var/www/index.html /var/www/html/wordpress/mysite/index.html;
 
 wp core download --allow-root;
 
-#set permissons
 chmod -R 775 /var/www/html/wordpress;
 chown -R www-data /var/www/html/wordpress;
 chown -R www-data:www-data /var/www/html/wordpress;

@@ -1,6 +1,5 @@
 FROM debian:buster
 
-
 RUN apt-get update
 
 COPY ./tools/script.sh /

@@ -16,7 +16,6 @@ server {
 
     # La directiva "root" establece el directorio raíz para las solicitudes a tu servidor.
     # Este directorio, /var/www/html/wordpress, se crea como un punto de montaje durante la construcción con las instrucciones del Dockerfile de WordPress.
-    # Estas instrucciones también garantizan que los archivos de WordPress se monten en este volumen.
     root /var/www/html/wordpress;
 
     # En este bloque de ubicación, usamos la directiva "try_files" para verificar archivos correspondientes a solicitudes URI individuales.
@@ -55,8 +54,16 @@ server {
         fastcgi_split_path_info ^(.+\.php)(/.+)$;
         fastcgi_pass wordpress:9000;
         fastcgi_index index.php;
+
+		# Incluye un conjunto estándar de parámetros FastCGI. Esto proporciona configuraciones comunes para trabajar con aplicaciones FastCGI
         include fastcgi_params;
+
+		# Establece el nombre del script que se pasará al servidor FastCGI.
+		# En este caso, se construye utilizando la ruta del documento raíz y el nombre del script.
         fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
+
+		# Establece la información de la ruta del script FastCGI.
+		# Esto se utiliza para pasar información adicional sobre la ruta al script PHP.
         fastcgi_param PATH_INFO $fastcgi_path_info;
     }
 
